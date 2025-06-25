@@ -1,21 +1,26 @@
 // components/Start.js
 
 import { useEffect, useState } from 'react';
-import { ImageBackground, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { ImageBackground, View, ScrollView, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import styles from '../styles/styles';
 
+//Start screen background image
 const bgImage = require('../assets/bg-image.png');
 
+//Holds static array of background color choices for chat screen
+//Add more colors to this array for additional choices
+const colorChoices = ['#090C08', '#474056', '#8A95A5', '#B9C6AE'];
+
+
+/*Function renders the Start screen for the application*/
 const StartScreen = ({ navigation }) => {
 
-  //State variable tracking chat name for user
-  const [name, setName] = useState('');
-  //State variable tracking background color selected by user (or default white)
-  const [selectedBgColor, setSelectedBgColor] = useState('#ffffff');
+  //State variables
+  const [name, setName] = useState(''); //Tracks chat name for user
+  const [selectedBgColor, setSelectedBgColor] = useState('#ffffff'); //Tracks background color selected by user (or default white)
 
   useEffect(() => {
     navigation.setOptions({ title: '' });
-    //navigation.setOptions({ headerShown: false });
   }, []);
 
   return (
@@ -42,24 +47,25 @@ const StartScreen = ({ navigation }) => {
           {/*Background color selection components\*/}
           <View style={styles.bgColorInput}>
             <Text style={styles.bgColorInputText}>Choose Background Color:</Text>
-            <View style={styles.colorSwatchBox}>
-              <TouchableOpacity
-                style={styles.bgColorChoice1}
-                onPress={() => { setSelectedBgColor('#090C08') }}
-              />
-              <TouchableOpacity
-                style={styles.bgColorChoice2}
-                onPress={() => { setSelectedBgColor('#474056') }}
-              />
-              <TouchableOpacity
-                style={styles.bgColorChoice3}
-                onPress={() => { setSelectedBgColor('#8A95A5') }}
-              />
-              <TouchableOpacity
-                style={styles.bgColorChoice4}
-                onPress={() => { setSelectedBgColor('#B9C6AE') }}
-              />
-            </View>
+
+            {/*Map colorChoices array into swatch components*/}
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.colorSwatchBox}
+            >
+              {colorChoices.map((color, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => setSelectedBgColor(color)}
+                  style={[
+                    styles.colorSwatch,
+                    { backgroundColor: color },
+                    selectedBgColor === color ? styles.selectedSwatchBorder : null
+                  ]}
+                />
+              ))}
+            </ScrollView>
           </View>
 
           <TouchableOpacity

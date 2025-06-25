@@ -101,29 +101,16 @@ const styles = StyleSheet.create({
     borderWidth: debugBorderWidth,
     borderColor: 'orange'
   },
-  bgColorChoice1: {
+
+  colorSwatch: {
     height: 50,
     width: 50,
     borderRadius: 25,
-    backgroundColor: '#090C08'
   },
-  bgColorChoice2: {
-    height: 50,
-    width: 50,
-    borderRadius: 25,
-    backgroundColor: '#474056'
-  },
-  bgColorChoice3: {
-    height: 50,
-    width: 50,
-    borderRadius: 25,
-    backgroundColor: '#8A95A5'
-  },
-  bgColorChoice4: {
-    height: 50,
-    width: 50,
-    borderRadius: 25,
-    backgroundColor: '#B9C6AE'
+
+  selectedSwatchBorder: {
+    borderWidth: 4,
+    borderColor: '#757083',
   },
 
   startChattingButton: {
@@ -140,6 +127,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600'
-  },
+  }
 });
 export default styles;
