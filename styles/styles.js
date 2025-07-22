@@ -9,7 +9,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+  },
+
+  containerAndroidBottomMargin: {
+    marginBottom: '15%'
   },
 
   backgroundImage: {
@@ -78,8 +82,8 @@ const styles = StyleSheet.create({
     color: '#757083',
     borderWidth: 2,
     borderColor: '#757083',
-    borderRadius: 5,
-    opacity: 0.5
+    borderRadius: 5
+    /*opacity: 0.5*/
   },
   bgColorInput: {
     width: "88%",
@@ -103,9 +107,9 @@ const styles = StyleSheet.create({
   },
 
   colorSwatch: {
-    height: 50,
-    width: 50,
-    borderRadius: 25,
+    height: 46,
+    width: 46,
+    borderRadius: 23,
   },
 
   selectedSwatchBorder: {
@@ -120,6 +124,7 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 10,
     marginBottom: '6%'
   },
   buttonText: {

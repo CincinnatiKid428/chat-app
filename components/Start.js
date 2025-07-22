@@ -1,7 +1,7 @@
 // components/Start.js
 
 import { useEffect, useState } from 'react';
-import { ImageBackground, View, ScrollView, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { ImageBackground, View, ScrollView, Text, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
 import styles from '../styles/styles';
 
 //Start screen background image
@@ -24,7 +24,7 @@ const StartScreen = ({ navigation }) => {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={Platform.OS === 'android' ? [styles.container, styles.containerAndroidBottomMargin] : styles.container}>
       <ImageBackground
         source={bgImage}
         resizeMode="cover"
