@@ -32,6 +32,7 @@ const Chat = ({ db, route, navigation }) => {
   const userID = route.params.userID;
   const name = route.params.name;
   const selectedBgColor = route.params?.selectedBgColor || '#FFFFFF';
+  const selectedAvatar = route.params?.selectedAvatar || null;
   const contrastColor = getContrastingTextColor(selectedBgColor);
 
   //This function will add timestamp and fields to message before adding document to Firestore DB
@@ -42,7 +43,7 @@ const Chat = ({ db, route, navigation }) => {
       user: {
         _id: userID,
         name: name,
-        avatar: 'https://img.buzzfeed.com/buzzfeed-static/static/avatars/tabby_large.jpg'
+        avatar: selectedAvatar
       }
     }
     try {
@@ -156,7 +157,7 @@ const Chat = ({ db, route, navigation }) => {
               user={{
                 _id: userID,
                 name: name,
-                avatar: 'https://img.buzzfeed.com/buzzfeed-static/static/avatars/tabby_large.jpg'
+                avatar: selectedAvatar
               }}
               showUserAvatar={true}
               showAvatarForEveryMessage={false}

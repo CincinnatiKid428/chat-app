@@ -1,7 +1,7 @@
 // components/Start.js
 
 import { useEffect, useState } from 'react';
-import { ImageBackground, View, ScrollView, Text, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
+import { ImageBackground, View, ScrollView, Text, TextInput, TouchableOpacity, Image, Alert, Platform } from 'react-native';
 import styles from '../styles/styles';
 
 //Import Firebase auth from config file
@@ -15,6 +15,15 @@ const bgImage = require('../assets/bg-image.png');
 //Add more colors to this array for additional choices
 const colorChoices = ['#090C08', '#474056', '#8A95A5', '#B9C6AE'];
 
+//Holds static array of avatar choices for chat screen
+const avatarChoices = [
+  'https://static.vecteezy.com/system/resources/thumbnails/034/721/323/small_2x/ai-generated-cute-cat-avatar-icon-clip-art-sticker-decoration-simple-background-free-photo.jpg',
+  'https://leblogdechatnoir.fr/wp-content/uploads/2016/10/Avatar-Chat-noir-Fanny-C-300x300.jpeg',
+  'https://img.buzzfeed.com/buzzfeed-static/static/avatars/tabby_large.jpg',
+  'https://static.vecteezy.com/system/resources/previews/059/016/446/non_2x/cat-head-cute-cats-faces-cat-heads-emoticons-kitten-face-expressions-pet-appreciation-concept-vector.jpg',
+  'https://st2.depositphotos.com/3058647/6243/v/450/depositphotos_62434599-stock-illustration-stylized-cat-icon-on-white.jpg'
+]
+
 
 /*Function renders the Start screen for the application*/
 const StartScreen = ({ navigation }) => {
@@ -22,6 +31,7 @@ const StartScreen = ({ navigation }) => {
   //State variables
   const [name, setName] = useState(''); //Tracks chat name for user
   const [selectedBgColor, setSelectedBgColor] = useState('#ffffff'); //Tracks background color selected by user (or default white)
+  const [avatar, setAvatar] = useState(null); //Tracks avatar selected by user
 
   //Function will allow user anonymous authentication
   const signInUser = async () => {
@@ -31,7 +41,8 @@ const StartScreen = ({ navigation }) => {
         navigation.navigate("Chat", {
           userID: authResult.user.uid,
           name: name,
-          selectedBgColor: selectedBgColor
+          selectedBgColor: selectedBgColor,
+          selectedAvatar: avatar
         });
 
       } else {
@@ -69,21 +80,21 @@ const StartScreen = ({ navigation }) => {
           />
 
           {/*Background color selection components\*/}
-          <View style={styles.bgColorInput}>
-            <Text style={styles.bgColorInputText}>Choose Background Color:</Text>
+          <View style={styles.userInput}>
+            <Text style={styles.userInputText}>Choose Background Color:</Text>
 
             {/*Map colorChoices array into swatch components*/}
             <ScrollView
               horizontal={true}
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.colorSwatchBox}
+              contentContainerStyle={styles.swatchBox}
             >
               {colorChoices.map((color, index) => (
                 <TouchableOpacity
                   key={index}
                   onPress={() => setSelectedBgColor(color)}
                   style={[
-                    styles.colorSwatch,
+                    styles.circleSwatch,
                     { backgroundColor: color },
                     selectedBgColor === color ? styles.selectedSwatchBorder : null
                   ]}
@@ -93,6 +104,29 @@ const StartScreen = ({ navigation }) => {
           </View>
 
           {/*Avatar selection here ? \*/}
+
+          <View style={styles.userInput}>
+            <Text style={styles.userInputText}>Choose Chat Avatar:</Text>
+
+            {/*Map avatarChoices array into swatch components*/}
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.swatchBox}
+            >
+              {avatarChoices.map((avatarURL, index) => (
+                <TouchableOpacity key={index} onPress={() => setAvatar(avatarURL)}>
+                  <Image
+                    source={{ uri: avatarURL }}
+                    style={[
+                      styles.circleSwatch,
+                      avatar === avatarURL ? styles.selectedSwatchBorder : null
+                    ]}
+                  />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
 
           <TouchableOpacity
             style={styles.startChattingButton}

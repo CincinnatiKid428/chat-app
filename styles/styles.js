@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   },
 
   startTitleBox: {
-    flex: 44,
+    flex: 40,
     width: '88%',
     marginTop: '6%',
     alignItems: 'center',
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   },
 
   startSelectionsBox: {
-    flex: 44,
+    flex: 48,
     width: '88%',
     marginBottom: '6%',
     backgroundColor: '#fff',
@@ -76,37 +76,38 @@ const styles = StyleSheet.create({
     padding: 15,
     borderWidth: 1,
     marginTop: 15,
-    marginBottom: 15,
+    marginBottom: 8,
     fontSize: 16,
     fontWeight: '300',
     color: '#757083',
     borderWidth: 2,
     borderColor: '#757083',
-    borderRadius: 5
-    /*opacity: 0.5*/
+    borderRadius: 5,
+    opacity: 1
   },
-  bgColorInput: {
+  userInput: {
     width: "88%",
     borderWidth: debugBorderWidth,
+    marginBottom: 7,
     borderColor: 'red'
   },
-  bgColorInputText: {
+  userInputText: {
     fontSize: 16,
     fontWeight: '300',
     color: '#757083',
     opacity: 1
   },
-  colorSwatchBox: {
+  swatchBox: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 10,
     gap: 15,
     borderWidth: debugBorderWidth,
-    borderColor: 'orange'
+    borderColor: 'blue'
   },
 
-  colorSwatch: {
+  circleSwatch: {
     height: 46,
     width: 46,
     borderRadius: 23,
@@ -124,7 +125,6 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 10,
     marginBottom: '6%'
   },
   buttonText: {
