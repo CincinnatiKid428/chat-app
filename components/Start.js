@@ -4,6 +4,10 @@ import { useEffect, useState } from 'react';
 import { ImageBackground, View, ScrollView, Text, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
 import styles from '../styles/styles';
 
+//Import Firebase auth from config file
+import { auth } from '../firebase_config';
+import { signInAnonymously } from "firebase/auth";
+
 //Start screen background image
 const bgImage = require('../assets/bg-image.png');
 
@@ -18,6 +22,26 @@ const StartScreen = ({ navigation }) => {
   //State variables
   const [name, setName] = useState(''); //Tracks chat name for user
   const [selectedBgColor, setSelectedBgColor] = useState('#ffffff'); //Tracks background color selected by user (or default white)
+
+  //Function will allow user anonymous authentication
+  const signInUser = async () => {
+    try {
+      const authResult = await signInAnonymously(auth);
+      if (authResult) {
+        navigation.navigate("Chat", {
+          userID: authResult.user.uid,
+          name: name,
+          selectedBgColor: selectedBgColor
+        });
+
+      } else {
+        Alert.alert("Unable to sign in to chat, please try again later.");
+      }
+    } catch (err) {
+      console.error("Unable to sign in with error: ", err);
+      Alert.alert("Error with signing into chat, please try again later.");
+    }
+  };
 
   useEffect(() => {
     navigation.setOptions({ title: '' });
@@ -68,13 +92,11 @@ const StartScreen = ({ navigation }) => {
             </ScrollView>
           </View>
 
+          {/*Avatar selection here ? \*/}
+
           <TouchableOpacity
             style={styles.startChattingButton}
-            onPress={() => {
-              name ?
-                navigation.navigate('ChatScreen', { name: name, selectedBgColor: selectedBgColor })
-                : Alert.alert('Please enter your name to continue.');
-            }}
+            onPress={signInUser}
           >
             <Text style={styles.buttonText}>Start Chatting</Text>
           </TouchableOpacity>

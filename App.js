@@ -1,4 +1,5 @@
 import { useFonts } from 'expo-font';
+import { db } from "./firebase_config";
 import { StyleSheet, Text, View } from 'react-native';
 
 //Import the screens
@@ -33,10 +34,11 @@ export default function App() {
           name="StartScreen"
           component={Start}
         />
-        <Stack.Screen
-          name="ChatScreen"
-          component={Chat}
-        />
+
+        <Stack.Screen name="Chat">
+          {props => <Chat db={db} {...props} />}
+        </Stack.Screen>
+
       </Stack.Navigator>
     </NavigationContainer>
 

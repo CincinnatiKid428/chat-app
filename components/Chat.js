@@ -5,6 +5,7 @@ import { View, KeyboardAvoidingView, Platform, TextInput, TouchableWithoutFeedba
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from '../styles/styles';
 import { GiftedChat, Bubble, SystemMessage, Day } from 'react-native-gifted-chat';
+import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
 
 /*This function takes a background color and determines the brightness of the color, then
 returns black or white to be the highest contrast color for font*/
@@ -24,17 +25,33 @@ function getContrastingTextColor(bgColor) {
   return brightness > 128 ? '#000000' : '#FFFFFF';
 }
 
-const Chat = ({ route, navigation }) => {
+const Chat = ({ db, route, navigation }) => {
 
   const [messages, setMessages] = useState([]);
 
+  const userID = route.params.userID;
   const name = route.params.name;
-  const selectedBgColor = route.params.selectedBgColor;
+  const selectedBgColor = route.params?.selectedBgColor || '#FFFFFF';
   const contrastColor = getContrastingTextColor(selectedBgColor);
 
-  //This function will update the state var messages and append new messages into the array
+  //This function will add timestamp and fields to message before adding document to Firestore DB
   const onSend = (newMessages) => {
-    setMessages(previousMessages => GiftedChat.append(previousMessages, newMessages))
+    const messageToAdd = {
+      ...newMessages[0],
+      createdAt: serverTimestamp(), //Ensures proper Firestore timestamp
+      user: {
+        _id: userID,
+        name: name,
+        avatar: 'https://img.buzzfeed.com/buzzfeed-static/static/avatars/tabby_large.jpg'
+      }
+    }
+    try {
+      addDoc(collection(db, "Messages"), messageToAdd);
+    } catch (err) {
+      Alert.alert("Unable to sent message, please try again.");
+      console.error("Chat.js|onSend(): Error trying to send new message to Firestore DB: ", err);
+    }
+
   }
 
   //This function will change colors of message bubbles in the chat 
@@ -69,7 +86,7 @@ const Chat = ({ route, navigation }) => {
     />
   }
 
-  //This function adds a test message and system message into the chat
+  //This function adds a test message and system message into the chat, add to useEffect() for testing purposes
   const addDefaultMessages = () => {
     const now = new Date();
     const earlier = new Date(now.getTime() - 1000); // 1 second earlier
@@ -97,11 +114,28 @@ const Chat = ({ route, navigation }) => {
   useEffect(() => {
     navigation.setOptions({ title: name });
 
-    const timeout = setTimeout(() => {
-      addDefaultMessages();
-    }, 1000); // Slight delay added to allow for component to mount for messages to appear on Android
+    //Set up Snapshot listener for Firestore DB
+    const q = query(collection(db, "Messages"), orderBy('createdAt', "desc"));
+    const unsubscribeMessages = onSnapshot(q, (documentsSnapshot) => {
+      let newMessages = [];
+      documentsSnapshot.forEach(doc => {
+        newMessages.push({
+          _id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate?.() || new Date() //converts Firestore timestamp to GiftedChat format for each message
+        })
+      });
 
-    return () => clearTimeout(timeout);
+      setMessages(newMessages);
+    });
+
+    //Slight delay added to allow for component to mount for messages to appear on Android
+    const timeout = setTimeout(() => { }, 1000);
+
+    return () => {
+      clearTimeout(timeout);
+      if (unsubscribeMessages) unsubscribeMessages();
+    }
   }, []);
 
   return (
@@ -120,10 +154,13 @@ const Chat = ({ route, navigation }) => {
               renderSystemMessage={renderSystemMessage}
               onSend={messages => onSend(messages)}
               user={{
-                _id: 1,
+                _id: userID,
+                name: name,
                 avatar: 'https://img.buzzfeed.com/buzzfeed-static/static/avatars/tabby_large.jpg'
               }}
               showUserAvatar={true}
+              showAvatarForEveryMessage={false}
+              renderUsernameOnMessage={true}
               enableAutomaticScroll={true}
               keyboardShouldPersistTaps="handled"
             />
