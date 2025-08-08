@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 5,
     gap: 15,
     borderWidth: debugBorderWidth,
     borderColor: 'blue'

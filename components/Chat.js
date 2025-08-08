@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { View, KeyboardAvoidingView, Platform, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from '../styles/styles';
-import { GiftedChat, Bubble, SystemMessage, Day } from 'react-native-gifted-chat';
+import { GiftedChat, Bubble, SystemMessage, Day, InputToolbar } from 'react-native-gifted-chat';
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /*This function takes a background color and determines the brightness of the color, then
 returns black or white to be the highest contrast color for font*/
@@ -25,7 +26,7 @@ function getContrastingTextColor(bgColor) {
   return brightness > 128 ? '#000000' : '#FFFFFF';
 }
 
-const Chat = ({ db, route, navigation }) => {
+const Chat = ({ db, route, isConnected, navigation }) => {
 
   const [messages, setMessages] = useState([]);
 
@@ -55,20 +56,61 @@ const Chat = ({ db, route, navigation }) => {
 
   }
 
+  //This function will cache chat messages
+  const cacheMessages = async (messagesToCache) => {
+    try {
+      await AsyncStorage.setItem('chat_messages', JSON.stringify(messagesToCache));
+      console.log(`Chat.js|cacheMessages(): Cache updated with messages.`);
+    } catch (err) {
+      console.error(`Chat.js|cacheMessages(): Error storing message in cache`, err);
+    }
+  }
+
+  //This function will load stored messages in cache
+  const loadCachedMessages = async () => {
+    try {
+      const cachedChatMessages = await AsyncStorage.getItem('chat_messages');
+      if (cachedChatMessages) {
+        const cachedChatMessagesObj = JSON.parse(cachedChatMessages);
+        setMessages(cachedChatMessagesObj);
+        console.log(`Chat.js|loadCachedMessages(): Loaded cached messages:`, cachedChatMessagesObj)
+      } else {
+        console.log(`Chat.js|loadCachedMessages(): No cached messages found.`);
+        setMessages([]);
+      }
+    } catch (err) {
+      console.error(`Chat.js|loadCachedMessages(): Error loading message from cache`, err);
+    }
+  }
+
   //This function will change colors of message bubbles in the chat 
   const renderBubble = (props) => {
     return <Bubble
       {...props}
       wrapperStyle={{
         right: {
-          backgroundColor: "#000"
+          backgroundColor: "#75d8ffff",
         },
         left: {
           backgroundColor: "#FFF"
         }
       }}
+      textStyle={{
+        right: {
+          color: '#000000' // Text color for sender
+        },
+        left: {
+          color: '#000000' // Optional: for receiver
+        }
+      }}
+      timeTextStyle={{
+        right: { color: '#000', fontSize: 10 },
+        //left: { color: '#000', fontSize: 10 }
+      }}
+
     />
   }
+
 
   //This function will change color of system message font based on selectedBgColor for high contrast
   const renderSystemMessage = (props) => {
@@ -87,6 +129,11 @@ const Chat = ({ db, route, navigation }) => {
     />
   }
 
+  //This function will conditionally render InputToolbar based on network connection
+  const renderInputToolbar = (props) => {
+    if (isConnected === false) return null;
+    else return <InputToolbar {...props} />
+  }
   //This function adds a test message and system message into the chat, add to useEffect() for testing purposes
   const addDefaultMessages = () => {
     const now = new Date();
@@ -112,32 +159,51 @@ const Chat = ({ db, route, navigation }) => {
     ]);
   }
 
+
+  let unsubscribeMessages;
+
   useEffect(() => {
     navigation.setOptions({ title: name });
 
-    //Set up Snapshot listener for Firestore DB
-    const q = query(collection(db, "Messages"), orderBy('createdAt', "desc"));
-    const unsubscribeMessages = onSnapshot(q, (documentsSnapshot) => {
-      let newMessages = [];
-      documentsSnapshot.forEach(doc => {
-        newMessages.push({
-          _id: doc.id,
-          ...doc.data(),
-          createdAt: doc.data().createdAt?.toDate?.() || new Date() //converts Firestore timestamp to GiftedChat format for each message
-        })
+    //console.log(`Chat.js|useEffect(): isConnected [${isConnected}] with messages[${messages}]`);
+
+    //If network connection is available...
+    if (isConnected === true) {
+
+      //If we have an active listener already, unsubscribe and set to null
+      //to avoid creating additional listeners and memory leaks
+      if (unsubscribeMessages) unsubscribeMessages();
+      unsubscribeMessages = null;
+
+      //Set up Snapshot listener for Firestore DB
+      const q = query(collection(db, "Messages"), orderBy('createdAt', "desc"));
+      unsubscribeMessages = onSnapshot(q, (documentsSnapshot) => {
+        let newMessages = [];
+        documentsSnapshot.forEach(doc => {
+          newMessages.push({
+            _id: doc.id,
+            ...doc.data(),
+            createdAt: doc.data().createdAt?.toDate?.() || new Date() //converts Firestore timestamp to GiftedChat format for each message
+          })
+        });
+        //Cache new chat messages & update state var
+        cacheMessages(newMessages);
+        setMessages(newMessages);
       });
 
-      setMessages(newMessages);
-    });
+    } else { //Network not connected, load from cache
+      loadCachedMessages();
+    }
 
-    //Slight delay added to allow for component to mount for messages to appear on Android
+
+    //Slight delay added to allow for component to mount & messages to appear on Android
     const timeout = setTimeout(() => { }, 1000);
 
     return () => {
       clearTimeout(timeout);
       if (unsubscribeMessages) unsubscribeMessages();
     }
-  }, []);
+  }, [isConnected]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: selectedBgColor }} edges={['bottom', 'top']}>
@@ -153,6 +219,7 @@ const Chat = ({ db, route, navigation }) => {
               renderBubble={renderBubble}
               renderDay={renderDay}
               renderSystemMessage={renderSystemMessage}
+              renderInputToolbar={renderInputToolbar}
               onSend={messages => onSend(messages)}
               user={{
                 _id: userID,
@@ -160,7 +227,7 @@ const Chat = ({ db, route, navigation }) => {
                 avatar: selectedAvatar
               }}
               showUserAvatar={true}
-              showAvatarForEveryMessage={false}
+              showAvatarForEveryMessage={true}
               renderUsernameOnMessage={true}
               enableAutomaticScroll={true}
               keyboardShouldPersistTaps="handled"

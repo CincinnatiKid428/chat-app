@@ -21,7 +21,8 @@ const avatarChoices = [
   'https://leblogdechatnoir.fr/wp-content/uploads/2016/10/Avatar-Chat-noir-Fanny-C-300x300.jpeg',
   'https://img.buzzfeed.com/buzzfeed-static/static/avatars/tabby_large.jpg',
   'https://static.vecteezy.com/system/resources/previews/059/016/446/non_2x/cat-head-cute-cats-faces-cat-heads-emoticons-kitten-face-expressions-pet-appreciation-concept-vector.jpg',
-  'https://st2.depositphotos.com/3058647/6243/v/450/depositphotos_62434599-stock-illustration-stylized-cat-icon-on-white.jpg'
+  'https://st2.depositphotos.com/3058647/6243/v/450/depositphotos_62434599-stock-illustration-stylized-cat-icon-on-white.jpg',
+  'https://thumbs.dreamstime.com/z/cartoon-ingwer-tabby-katzengesicht-katze-gesichtszeichnung-niedlich-orange-kitty-portrait-vektor-clip-art-illustration-220611904.jpg?w=360'
 ]
 
 
@@ -102,8 +103,6 @@ const StartScreen = ({ navigation }) => {
               ))}
             </ScrollView>
           </View>
-
-          {/*Avatar selection here ? \*/}
 
           <View style={styles.userInput}>
             <Text style={styles.userInputText}>Choose Chat Avatar:</Text>
