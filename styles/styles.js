@@ -132,6 +132,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600'
+  },
+  mapImage: {
+    width: 200,
+    height: 125,
+    borderRadius: 13,
+    margin: 3
   }
 });
 export default styles;

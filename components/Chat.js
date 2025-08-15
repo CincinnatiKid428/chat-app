@@ -1,12 +1,16 @@
 //components/Chat.js
 
 import { useState, useEffect } from 'react';
-import { View, KeyboardAvoidingView, Platform, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Keyboard, KeyboardAvoidingView, Platform, TouchableOpacity, TouchableWithoutFeedback, Linking, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+//import WebView from "react-native-webview";
 import styles from '../styles/styles';
 import { GiftedChat, Bubble, SystemMessage, Day, InputToolbar } from 'react-native-gifted-chat';
+import CustomActions from "./CustomActions";
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const GOOGLE_MAPS_API_KEY = 'AIzaSyBGy1b9jyVCNaPM3j_o-efsFXrRdmDQRjQ';
 
 /*This function takes a background color and determines the brightness of the color, then
 returns black or white to be the highest contrast color for font*/
@@ -29,6 +33,8 @@ function getContrastingTextColor(bgColor) {
 const Chat = ({ db, route, isConnected, navigation }) => {
 
   const [messages, setMessages] = useState([]);
+  const [image, setImage] = useState(null);
+  const [location, setLocation] = useState(null);
 
   const userID = route.params.userID;
   const name = route.params.name;
@@ -60,7 +66,7 @@ const Chat = ({ db, route, isConnected, navigation }) => {
   const cacheMessages = async (messagesToCache) => {
     try {
       await AsyncStorage.setItem('chat_messages', JSON.stringify(messagesToCache));
-      console.log(`Chat.js|cacheMessages(): Cache updated with messages.`);
+      //console.log(`Chat.js|cacheMessages(): Cache updated with messages.`); //Debug
     } catch (err) {
       console.error(`Chat.js|cacheMessages(): Error storing message in cache`, err);
     }
@@ -73,7 +79,6 @@ const Chat = ({ db, route, isConnected, navigation }) => {
       if (cachedChatMessages) {
         const cachedChatMessagesObj = JSON.parse(cachedChatMessages);
         setMessages(cachedChatMessagesObj);
-        console.log(`Chat.js|loadCachedMessages(): Loaded cached messages:`, cachedChatMessagesObj)
       } else {
         console.log(`Chat.js|loadCachedMessages(): No cached messages found.`);
         setMessages([]);
@@ -92,7 +97,7 @@ const Chat = ({ db, route, isConnected, navigation }) => {
           backgroundColor: "#75d8ffff",
         },
         left: {
-          backgroundColor: "#FFF"
+          backgroundColor: "#e6e6e6ff"
         }
       }}
       textStyle={{
@@ -159,19 +164,54 @@ const Chat = ({ db, route, isConnected, navigation }) => {
     ]);
   }
 
+  //Function will conditionally render custom action component button based on network connection
+  const renderCustomActions = (props) => {
+    if (isConnected === false) return null;
+    else return <CustomActions {...props} />;
+  };
+
+
+  //Funtion will handle custom views in messages (images/maps)
+  const renderCustomView = (props) => {
+
+    const { currentMessage } = props;
+    if (currentMessage.location) {
+      //console.log(`Chat.js|renderCustomView(): Received location message with ${JSON.stringify(currentMessage.location)}`);
+      const { latitude, longitude } = currentMessage.location;
+      const mapImgUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${latitude},${longitude}&zoom=14&size=300x150&markers=color:red%7C${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`;
+
+      //Opens link to Google maps if map image bubble is tapped
+      const openMapLink = () => {
+        const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+        Linking.openURL(url).catch((err) => {
+          console.error("Failed to open map:", err);
+          Alert.alert("Could not open map");
+        });
+      }
+
+      return (
+        <TouchableOpacity onPress={openMapLink}>
+          <Image
+            style={styles.mapImage}
+            source={{ uri: mapImgUrl }}
+            resizeMode='cover'
+          />
+        </TouchableOpacity>
+      );
+    }
+    return null;
+  }
 
   let unsubscribeMessages;
 
   useEffect(() => {
     navigation.setOptions({ title: name });
 
-    //console.log(`Chat.js|useEffect(): isConnected [${isConnected}] with messages[${messages}]`);
-
     //If network connection is available...
     if (isConnected === true) {
 
-      //If we have an active listener already, unsubscribe and set to null
-      //to avoid creating additional listeners and memory leaks
+      /*If we have an active listener already, unsubscribe and set to null
+        to avoid creating additional listeners and memory leaks */
       if (unsubscribeMessages) unsubscribeMessages();
       unsubscribeMessages = null;
 
@@ -194,7 +234,6 @@ const Chat = ({ db, route, isConnected, navigation }) => {
     } else { //Network not connected, load from cache
       loadCachedMessages();
     }
-
 
     //Slight delay added to allow for component to mount & messages to appear on Android
     const timeout = setTimeout(() => { }, 1000);
@@ -220,14 +259,16 @@ const Chat = ({ db, route, isConnected, navigation }) => {
               renderDay={renderDay}
               renderSystemMessage={renderSystemMessage}
               renderInputToolbar={renderInputToolbar}
+              renderActions={renderCustomActions}
               onSend={messages => onSend(messages)}
+              renderCustomView={renderCustomView}
               user={{
                 _id: userID,
                 name: name,
                 avatar: selectedAvatar
               }}
               showUserAvatar={true}
-              showAvatarForEveryMessage={true}
+              showAvatarForEveryMessage={false}
               renderUsernameOnMessage={true}
               enableAutomaticScroll={true}
               keyboardShouldPersistTaps="handled"
