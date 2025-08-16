@@ -1,10 +1,10 @@
 import { useFonts } from 'expo-font';
 
 import { useEffect } from 'react';
-import { StyleSheet, Alert, View } from 'react-native';
+import { Alert } from 'react-native';
 
-//Firebase / DB related imports
-import { db } from "./firebase_config";
+//Firebase storage / Firestore DB related imports
+import { db, storage } from "./firebase_config";
 import { useNetInfo } from '@react-native-community/netinfo';
 import { disableNetwork, enableNetwork } from 'firebase/firestore';
 
@@ -56,7 +56,7 @@ export default function App() {
         />
 
         <Stack.Screen name="Chat">
-          {props => <Chat isConnected={connectionStatus.isConnected} db={db} {...props} />}
+          {props => <Chat isConnected={connectionStatus.isConnected} db={db} storage={storage} {...props} />}
         </Stack.Screen>
 
       </Stack.Navigator>

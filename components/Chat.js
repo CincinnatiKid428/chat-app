@@ -4,13 +4,18 @@ import { useState, useEffect } from 'react';
 import { View, Keyboard, KeyboardAvoidingView, Platform, TouchableOpacity, TouchableWithoutFeedback, Linking, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 //import WebView from "react-native-webview";
+
 import styles from '../styles/styles';
+
+//Gifted chat imports (and custom components)
 import { GiftedChat, Bubble, SystemMessage, Day, InputToolbar } from 'react-native-gifted-chat';
 import CustomActions from "./CustomActions";
+
+//Firebase & cache imports
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyBGy1b9jyVCNaPM3j_o-efsFXrRdmDQRjQ';
+const GOOGLE_MAPS_API_KEY = 'YOUR_API_KEY';
 
 /*This function takes a background color and determines the brightness of the color, then
 returns black or white to be the highest contrast color for font*/
@@ -30,7 +35,7 @@ function getContrastingTextColor(bgColor) {
   return brightness > 128 ? '#000000' : '#FFFFFF';
 }
 
-const Chat = ({ db, route, isConnected, navigation }) => {
+const Chat = ({ db, storage, route, isConnected, navigation }) => {
 
   const [messages, setMessages] = useState([]);
   const [image, setImage] = useState(null);
@@ -59,7 +64,6 @@ const Chat = ({ db, route, isConnected, navigation }) => {
       Alert.alert("Unable to sent message, please try again.");
       console.error("Chat.js|onSend(): Error trying to send new message to Firestore DB: ", err);
     }
-
   }
 
   //This function will cache chat messages
@@ -116,7 +120,6 @@ const Chat = ({ db, route, isConnected, navigation }) => {
     />
   }
 
-
   //This function will change color of system message font based on selectedBgColor for high contrast
   const renderSystemMessage = (props) => {
     return <SystemMessage
@@ -139,37 +142,12 @@ const Chat = ({ db, route, isConnected, navigation }) => {
     if (isConnected === false) return null;
     else return <InputToolbar {...props} />
   }
-  //This function adds a test message and system message into the chat, add to useEffect() for testing purposes
-  const addDefaultMessages = () => {
-    const now = new Date();
-    const earlier = new Date(now.getTime() - 1000); // 1 second earlier
-
-    setMessages([
-      {
-        _id: 1,
-        text: 'Hello developer, this is a test chat message.',
-        createdAt: now,
-        user: {
-          _id: 2,
-          name: 'React Native',
-          avatar: 'https://static.vecteezy.com/system/resources/thumbnails/034/721/323/small_2x/ai-generated-cute-cat-avatar-icon-clip-art-sticker-decoration-simple-background-free-photo.jpg',
-        },
-      },
-      {
-        _id: 2,
-        text: 'This is a system message',
-        createdAt: earlier, // Needs to be set 1s earlier so messages display properly, otherwise display of default message & timestamp does not appear
-        system: true,
-      },
-    ]);
-  }
 
   //Function will conditionally render custom action component button based on network connection
   const renderCustomActions = (props) => {
     if (isConnected === false) return null;
-    else return <CustomActions {...props} />;
+    else return <CustomActions storage={storage} userID={userID} {...props} />;
   };
-
 
   //Funtion will handle custom views in messages (images/maps)
   const renderCustomView = (props) => {
@@ -249,9 +227,10 @@ const Chat = ({ db, route, isConnected, navigation }) => {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? null : 'padding'} // To help with keyboard covering text input
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 75} // adjusted to Android physical device 
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 80} // adjusted to Android physical device 
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+
           <View style={{ flex: 1 }}>
             <GiftedChat
               messages={messages}
@@ -274,6 +253,7 @@ const Chat = ({ db, route, isConnected, navigation }) => {
               keyboardShouldPersistTaps="handled"
             />
           </View>
+
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>

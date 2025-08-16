@@ -13,7 +13,16 @@ const bgImage = require('../assets/bg-image.png');
 
 //Holds static array of background color choices for chat screen
 //Add more colors to this array for additional choices
-const colorChoices = ['#090C08', '#474056', '#8A95A5', '#B9C6AE'];
+const colorChoices = [
+  '#090C08',
+  '#474056',
+  '#8A95A5',
+  '#B9C6AE',
+  '#fda828ff',
+  '#022349ff',
+  '#1a3a00ff',
+  '#883d82ff'
+];
 
 //Holds static array of avatar choices for chat screen
 const avatarChoices = [

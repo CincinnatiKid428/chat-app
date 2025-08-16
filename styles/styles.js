@@ -134,8 +134,8 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   mapImage: {
-    width: 200,
-    height: 125,
+    width: 300,
+    height: 150,
     borderRadius: 13,
     margin: 3
   }
